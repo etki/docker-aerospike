@@ -1,0 +1,66 @@
+# Aerospike database configuration file.
+
+# This stanza must come first.
+service {
+	user root
+	group root
+	paxos-single-replica-limit {{ paxos_single_replica_limit }} # Number of nodes where the replica count is automatically reduced to 1.
+	pidfile /var/run/aerospike/asd.pid
+	service-threads {{ service_threads }}
+	transaction-queues {{ transaction_queues }}
+	transaction-threads-per-queue {{ transaction_threads_per_queue }}
+	proto-fd-max {{ proto_fd_max }}
+}
+
+logging {
+
+{{ file_log_stanza }}
+
+	# Send log messages to stdout
+	console {
+		context any info
+	}
+}
+
+network {
+	service {
+		address any
+		port 3000
+
+		{{ network.access_address_stanza }}
+	}
+
+	heartbeat {
+
+		# mesh is used for environments that do not support multicast
+		mode {{ heartbeat.mode }}
+		port 3002
+
+		# use asinfo -v 'tip:host=<ADDR>;port=3002' to inform cluster of
+		# other mesh nodes
+		mesh-port 3002
+
+		{{ heartbeat.interface_address_stanza }}
+		{{ heartbeat.mesh_addresses_stanza }}
+
+		interval {{ heartbeat.interval }}
+		timeout {{ heartbeat.timeout }}
+	}
+
+	fabric {
+		port 3001
+	}
+
+	info {
+		port 3003
+	}
+}
+
+namespace {{ namespace.id }} {
+	replication-factor {{ namespace.replication_factor }}
+	memory-size {{ namespace.memory_size }}
+	default-ttl {{ namespace.default_ttl }}
+
+{{ namespace.storage_stanza }}
+}
+
